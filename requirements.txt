@@ -1,0 +1,12 @@
+bottle==0.12.13
+pandas==0.22
+statsmodels==0.9.0
+matplotlib
+numpy
+seaborn==0.9.0
+sklearn
+pytest
+pytest-watch
+scipy
+pymysql
+sqlalchemy
