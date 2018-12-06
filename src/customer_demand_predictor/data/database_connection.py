@@ -4,7 +4,7 @@ import logging
 from sqlalchemy import create_engine
 
 db_user = 'root'
-db_pw = 'Web2)wanted'
+db_pw = 'Sorge6,aastet'
 db_host = 'localhost'
 db_port = 3306
 db_schema = 'ewiis3'
