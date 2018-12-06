@@ -141,7 +141,7 @@ class TimeSeries:
 
 
     def find_best_orders(self):
-        best_orders = x13_arima_select_order(self.train, x12path='/home/ewiis3/PowerTac/x13asall_V1.1_B39/x13as')
+        best_orders = x13_arima_select_order(self.raw_time_series, x12path='/home/ewiis3/PowerTac/x13asall_V1.1_B39/x13as')
         return best_orders
 
     ####################################################
