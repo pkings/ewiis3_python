@@ -12,7 +12,7 @@ from numpy import polyfit
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAXResults, SARIMAX
 from statsmodels.tsa.x13 import x13_arima_select_order, _find_x12
-from libs.ts_clustering import ts_cluster
+# from libs.ts_clustering import ts_cluster
 import statsmodels.api as sm
 
 
@@ -185,12 +185,12 @@ class TimeSeries:
     ''' Time Series Clustering '''
     ##########################
 
-    def cluster_time_serieses(self, time_serieses, num_custer=10):
+    '''def cluster_time_serieses(self, time_serieses, num_custer=10):
         for i in range(1, num_custer+1):
             ts_c = ts_cluster(time_serieses, i)
             ts_c.k_means_clust(4, 10)
             ts_c.plot_centroids()
-            ts_c.plot_cluster_assigments()
+            ts_c.plot_cluster_assigments()'''
 
     ####################################################
     #### Plot Helpers

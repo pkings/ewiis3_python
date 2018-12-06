@@ -2,8 +2,9 @@ import logging
 import os
 
 import pandas as pd
-from libs.time_series import TimeSeries
+
 import customer_demand_predictor as cdp
+from customer_demand_predictor.sarima.time_series import TimeSeries
 
 
 def predict_single_customer(customer_name, time_series, forecast_length=24):

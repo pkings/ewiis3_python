@@ -1,7 +1,5 @@
-from libs.time_series import TimeSeries
-
 import customer_demand_predictor as cdp
-import logging
+from customer_demand_predictor.sarima.time_series import TimeSeries
 
 
 def train_models_for_each_customer(df_consumption_and_production):
