@@ -43,11 +43,11 @@ def simulate(start_timeslot, end_timeslot, model_build_frequency):
 
 if __name__ == '__main__':
     #for modulu in range(25, 200, 25):
-    modulu = 4
+    modulu = 10
     start_timeslot = 500
-    end_timeslot = 650
+    end_timeslot = 1600
 
-    data.drop_prediction_table()
+    # data.drop_prediction_table()
     simulate(start_timeslot, end_timeslot, modulu)
     visualization.boxplot_prediction_and_time_delta('prediction_performance_{}_{}_{}'.format(start_timeslot, end_timeslot, modulu))
     visualization.plot_actual_predict_for_each_customer()

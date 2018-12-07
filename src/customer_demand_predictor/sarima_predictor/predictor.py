@@ -5,15 +5,22 @@ import pandas as pd
 
 import customer_demand_predictor as cdp
 from customer_demand_predictor.sarima.time_series import TimeSeries
+from customer_demand_predictor.util import load_model_selection
 
 
 def predict_single_customer(customer_name, time_series, forecast_length=24):
     if '{}{}.pkl'.format(customer_name, cdp.SARIMA_MODEL_SUFFIX) in os.listdir(cdp.MODEL_DIR):
         ts = TimeSeries(time_series, forecast_length, False, cdp.MODEL_DIR, cdp.SARIMA_MODEL_SUFFIX, name=customer_name)
-        prediction = ts.predict_with_sarima(order=(1, 0, 0), seasonal_order=(1, 0, 0, 24))
+        best_models_for_all_customers = load_model_selection()
+        if not customer_name in best_models_for_all_customers.keys():
+            logging.error('no model has been selected for this customer.')
+        else:
+            best_model_params = best_models_for_all_customers[customer_name]
+            logging.info('Predict for customer {} with parameters {}.'.format(customer_name, best_model_params['best_aic']))
+            prediction = ts.predict_with_sarima(order=best_model_params['best_aic']['order'], seasonal_order=best_model_params['best_aic']['seasonal_order'])
         return prediction
     else:
-        logging.info("No model has been trained yet for customer: {}.".format(customer_name))
+        logging.error("No model has been trained yet for customer: {}.".format(customer_name))
         return None
 
 
