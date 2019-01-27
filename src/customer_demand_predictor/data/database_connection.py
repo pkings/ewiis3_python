@@ -43,6 +43,32 @@ def load_predictions():
     return df_predictions
 
 
+def load_prosumption_predictions():
+    try:
+        sql_statement = "SELECT * FROM `prosumption_prediction`"
+        df_predictions = execute_sql_query(sql_statement)
+    except Exception as e:
+        print('Error occured while requesting prosumption_prediction table from db.')
+        df_predictions = pd.DataFrame()
+    return df_predictions
+
+
+def load_total_grid_consumption_and_production():
+    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+    try:
+        sql_statement = 'SELECT dr.*, wr.cloudCover, wr.temperature, wr.windDirection, wr.windSpeed FROM (SELECT * FROM ewiis3.distribution_report WHERE distribution_report.gameId="{}") AS dr LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON dr.timeslot = wr.timeslotIndex;'.format(game_id, game_id)
+        df_total_grid_consumption_and_production = execute_sql_query(sql_statement)
+    except Exception as e:
+        print('Error occured while requesting total grid consumption and production table from db.')
+        df_total_grid_consumption_and_production = pd.DataFrame()
+    return df_total_grid_consumption_and_production, game_id
+
+
+def store_prosumption_predictions(df_prosumption_predictions):
+    cnx = create_db_connection_engine()
+    df_prosumption_predictions.to_sql(name='prosumption_prediction', schema='ewiis3', con=cnx, if_exists='append', index=False)
+
+
 def drop_prediction_table():
     conn = __connect_to_local_database()
     conn.cursor()

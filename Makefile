@@ -63,6 +63,10 @@ endif
 simulate:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/simulation/simulate_demand_prediction.py
 
+## simulate prediction
+start_predictor:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/total_grid_con_prod_predictor.py
+
 ## create data directories
 data_dir:
 	mkdir logs
