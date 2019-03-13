@@ -63,9 +63,13 @@ endif
 simulate:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/simulation/simulate_demand_prediction.py
 
-## simulate prediction
-start_predictor:
+## grid prosumption prediction
+start_total_grid_prosumption_predictor:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/total_grid_con_prod_predictor.py
+
+## wholesale prices prediction
+start_wholesale_prices_predictor:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/wholesale_price.py
 
 ## create data directories
 data_dir:
