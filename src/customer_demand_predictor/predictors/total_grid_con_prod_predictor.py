@@ -50,6 +50,13 @@ def predict_with_trained_SARIMA_model(dep_var, indep_var, target, type, model_ty
     fitted_model = model.filter(params=saved_model.params)
     prediction = fitted_model.predict(exog=X[-24:], start=latest_index + 1, end=latest_index + 1 + forecast_length - 1)
     df_prediction = pd.DataFrame({'target_timeslot': range(latest_timeslot + 1, latest_timeslot + 1 + forecast_length), 'prediction': prediction})
+
+    # set lower and upper bound for prediction
+    prediction_upper_bound = max(Y) * 1.2
+    prediction_lower_bound = min(Y) * 0.8
+    # restrict prediction in lower and upper bound
+    df_prediction['prediction'] = df_prediction['prediction'].apply(lambda x: max([min([x, prediction_upper_bound]), prediction_lower_bound]))
+
     df_prediction['prediction_timeslot'] = latest_timeslot
     df_prediction['proximity'] = df_prediction['target_timeslot'] - df_prediction['prediction_timeslot']
     df_prediction['game_id'] = game_id
@@ -68,11 +75,11 @@ def predict_production():
 
 
 def train_consumption_model():
-    train_SARIMA_model('totalConsumption', ['cloudCover', 'temperature'], 'grid', 'consumption', 'SARIMAX')
+    train_SARIMA_model('totalConsumption', ['isWeekend', 'temperature'], 'grid', 'consumption', 'SARIMAX')
 
 
 def predict_consumption():
-    predict_with_trained_SARIMA_model('totalConsumption', ['cloudCover', 'temperature'], 'grid', 'consumption', 'SARIMAX')
+    predict_with_trained_SARIMA_model('totalConsumption', ['isWeekend', 'temperature'], 'grid', 'consumption', 'SARIMAX')
 
 
 def train_all_predictors():
@@ -105,7 +112,7 @@ def check_for_existing_prediction(df_total_grid_consumption_and_production):
 
 if __name__ == '__main__':
     while True:
-        retrain_models = 5
+        retrain_models = 3
         try:
             start_time = time.time()
             df_total_grid_consumption_and_production, game_id = data.load_total_grid_consumption_and_production()
@@ -124,4 +131,4 @@ if __name__ == '__main__':
         except Exception as e:
             print("ERROR: some error has occurred during iteration.")
             print(e)
-        time.sleep(2)
+        time.sleep(1.5)
