@@ -64,8 +64,16 @@ simulate:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/simulation/simulate_demand_prediction.py
 
 ## grid prosumption prediction
-start_total_grid_prosumption_predictor:
-	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/total_grid_con_prod_predictor.py
+start_grid_prosumption_predictor:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/grid_prosumption.py
+
+## grid imbalance prediction
+start_grid_imbalance_predictor:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/grid_imbalance.py
+
+## customer prosumption prediction
+start_customer_prosumption_predictor:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/customer_prosumption.py
 
 ## wholesale prices prediction
 start_wholesale_prices_predictor:
