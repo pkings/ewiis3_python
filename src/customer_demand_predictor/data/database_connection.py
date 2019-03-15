@@ -1,6 +1,7 @@
 import pymysql
 import pandas as pd
 import logging
+import time
 from sqlalchemy import create_engine
 
 db_user = 'root'
@@ -37,12 +38,6 @@ def load_consumption_and_production_data(max_timeslot=None):
     return df_tariff_transactions
 
 
-def load_predictions():
-    sql_statement = "SELECT * FROM `prediction`"
-    df_predictions = execute_sql_query(sql_statement)
-    return df_predictions
-
-
 def load_cleared_trades():
     game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
     try:
@@ -54,31 +49,59 @@ def load_cleared_trades():
     return df_cleared_trades, game_id
 
 
-def load_prosumption_predictions():
+def load_predictions(table_name):
     try:
-        sql_statement = "SELECT * FROM `prosumption_prediction`"
+        sql_statement = "SELECT * FROM `{}`".format(table_name)
         df_predictions = execute_sql_query(sql_statement)
     except Exception as e:
-        print('Error occured while requesting prosumption_prediction table from db.')
+        print('Error occured while requesting `{}` table from db.'.format(table_name))
         df_predictions = pd.DataFrame()
     return df_predictions
 
 
 def load_total_grid_consumption_and_production():
     game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+    start_time = time.time()
     try:
-        # sql_statement = 'SELECT dr.*, wr.cloudCover, wr.temperature, wr.windDirection, wr.windSpeed FROM (SELECT * FROM ewiis3.distribution_report WHERE distribution_report.gameId="{}") AS dr LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON dr.timeslot = wr.timeslotIndex;'.format(game_id, game_id)
         sql_statement = 'SELECT prosumptin_meets_weather.*, ts.isWeekend, ts.dayOfWeek, ts.slotInDay FROM (SELECT dr.*, wr.cloudCover, wr.temperature, wr.windDirection, wr.windSpeed FROM (SELECT * FROM ewiis3.distribution_report WHERE distribution_report.gameId="{}") AS dr LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON dr.timeslot = wr.timeslotIndex) AS prosumptin_meets_weather LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE timeslot.gameId="{}") AS ts ON prosumptin_meets_weather.timeslot = ts.serialNumber;'.format(game_id, game_id, game_id)
         df_total_grid_consumption_and_production = execute_sql_query(sql_statement)
     except Exception as e:
-        print('Error occured while requesting total grid consumption and production table from db.')
+        print('Error occured while requesting grid consumption and production from db.')
         df_total_grid_consumption_and_production = pd.DataFrame()
+    print('Loading grid consumption and production last: {} seconds.'.format(time.time() - start_time))
     return df_total_grid_consumption_and_production, game_id
 
 
-def store_prosumption_predictions(df_prosumption_predictions):
+def store_predictions(df_prosumption_predictions, table_name):
     cnx = create_db_connection_engine()
-    df_prosumption_predictions.to_sql(name='prosumption_prediction', schema='ewiis3', con=cnx, if_exists='append', index=False)
+    df_prosumption_predictions.to_sql(name=table_name, schema='ewiis3', con=cnx, if_exists='append', index=False)
+
+
+def load_grid_imbalance():
+    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+    start_time = time.time()
+    try:
+        sql_statement = 'SELECT prosumptin_meets_weather.*, ts.isWeekend, ts.dayOfWeek, ts.slotInDay FROM (SELECT dr.*, wr.cloudCover, wr.temperature, wr.windDirection, wr.windSpeed FROM (SELECT * FROM ewiis3.balance_report WHERE balance_report.gameId="{}") AS dr LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON dr.timeslotIndex = wr.timeslotIndex) AS prosumptin_meets_weather LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE timeslot.gameId="{}") AS ts ON prosumptin_meets_weather.timeslotIndex = ts.serialNumber;'.format(game_id, game_id, game_id)
+        df_total_grid_imbalance = execute_sql_query(sql_statement)
+    except Exception as e:
+        print('Error occured while requesting grid imbalances from db.')
+        df_total_grid_imbalance = pd.DataFrame()
+    print('Loading grid imbalance last: {} seconds.'.format(time.time() - start_time))
+    return df_total_grid_imbalance, game_id
+
+
+def load_customer_prosumption():
+    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+    start_time = time.time()
+    try:
+        sql_statement = 'SELECT * FROM (SELECT * FROM (SELECT postedTimeslotIndex, SUM(kWH) FROM ewiis3.tariff_transaktion WHERE gameId = "{}" AND (txType = "CONSUME" OR txType = "PRODUCE") GROUP BY postedTimeslotIndex) AS customer_prod_con LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON customer_prod_con.postedTimeslotIndex = wr.timeslotIndex ) AS prosumption_meets_weather LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE gameId = "{}") AS ts ON prosumption_meets_weather.postedTimeslotIndex = ts.serialNumber;'.format(game_id, game_id, game_id)
+        df_customer_prosumption = execute_sql_query(sql_statement)
+    except Exception as e:
+        print('Error occured while requesting customer prosumption from db.')
+        df_customer_prosumption = pd.DataFrame()
+    print('Loading customer prosumption last: {} seconds.'.format(time.time() - start_time))
+    return df_customer_prosumption, game_id
+
 
 
 def store_price_intervals(df_intervals):
@@ -96,19 +119,3 @@ def store_price_intervals(df_intervals):
     except Exception as e:
         print('Error occured during storing price intervals.')
         print(e)
-
-
-def drop_prediction_table():
-    conn = __connect_to_local_database()
-    conn.cursor()
-    cur = conn.cursor()
-    cur.execute("DROP TABLE IF EXISTS prediction")
-    conn.commit()
-    conn.close()
-    logging.info('Successfully dropped prediction table in local db.')
-
-
-def store_prediction_to_db(df_predictions):
-    cnx = create_db_connection_engine()
-    df_predictions.to_sql(name='prediction', schema='ewiis3', con=cnx, if_exists='append', index=False)
-    logging.info('Successfully stored all predictions in db.')
