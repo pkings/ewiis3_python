@@ -38,8 +38,10 @@ def load_consumption_and_production_data(max_timeslot=None):
     return df_tariff_transactions
 
 
-def load_cleared_trades():
-    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+def load_cleared_trades(game_id):
+    if game_id is None:
+        return pd.DataFrame(), game_id
+
     try:
         sql_statement = 'SELECT ct.*, ts.isWeekend, ts.dayOfWeek, ts.slotInDay, ts.timestamp FROM (SELECT t.* FROM ewiis3.cleared_trade t WHERE gameId="{}") AS ct LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE timeslot.gameId="{}") AS ts ON ct.timeslot = ts.serialNumber'.format(game_id, game_id)
         df_cleared_trades = execute_sql_query(sql_statement)
@@ -59,8 +61,10 @@ def load_predictions(table_name):
     return df_predictions
 
 
-def load_total_grid_consumption_and_production():
-    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+def load_total_grid_consumption_and_production(game_id):
+    if game_id is None:
+        return pd.DataFrame(), game_id
+
     start_time = time.time()
     try:
         sql_statement = 'SELECT prosumptin_meets_weather.*, ts.isWeekend, ts.dayOfWeek, ts.slotInDay FROM (SELECT dr.*, wr.cloudCover, wr.temperature, wr.windDirection, wr.windSpeed FROM (SELECT * FROM ewiis3.distribution_report WHERE distribution_report.gameId="{}") AS dr LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON dr.timeslot = wr.timeslotIndex) AS prosumptin_meets_weather LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE timeslot.gameId="{}") AS ts ON prosumptin_meets_weather.timeslot = ts.serialNumber;'.format(game_id, game_id, game_id)
@@ -77,8 +81,10 @@ def store_predictions(df_prosumption_predictions, table_name):
     df_prosumption_predictions.to_sql(name=table_name, schema='ewiis3', con=cnx, if_exists='append', index=False)
 
 
-def load_grid_imbalance():
-    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+def load_grid_imbalance(game_id):
+    if game_id is None:
+        return pd.DataFrame(), game_id
+
     start_time = time.time()
     try:
         sql_statement = 'SELECT prosumptin_meets_weather.*, ts.isWeekend, ts.dayOfWeek, ts.slotInDay FROM (SELECT dr.*, wr.cloudCover, wr.temperature, wr.windDirection, wr.windSpeed FROM (SELECT * FROM ewiis3.balance_report WHERE balance_report.gameId="{}") AS dr LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON dr.timeslotIndex = wr.timeslotIndex) AS prosumptin_meets_weather LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE timeslot.gameId="{}") AS ts ON prosumptin_meets_weather.timeslotIndex = ts.serialNumber;'.format(game_id, game_id, game_id)
@@ -90,8 +96,10 @@ def load_grid_imbalance():
     return df_total_grid_imbalance, game_id
 
 
-def load_customer_prosumption():
-    game_id = 'EWIIS3_SPOT_AgentUDE17_TacTex15_cwiBroker_maxon16_1'
+def load_customer_prosumption(game_id):
+    if game_id is None:
+        return pd.DataFrame(), game_id
+
     start_time = time.time()
     try:
         sql_statement = 'SELECT * FROM (SELECT * FROM (SELECT postedTimeslotIndex, SUM(kWH) FROM ewiis3.tariff_transaktion WHERE gameId = "{}" AND (txType = "CONSUME" OR txType = "PRODUCE") GROUP BY postedTimeslotIndex) AS customer_prod_con LEFT JOIN (SELECT * FROM ewiis3.weather_report WHERE weather_report.gameId="{}") AS wr ON customer_prod_con.postedTimeslotIndex = wr.timeslotIndex ) AS prosumption_meets_weather LEFT JOIN (SELECT * FROM ewiis3.timeslot WHERE gameId = "{}") AS ts ON prosumption_meets_weather.postedTimeslotIndex = ts.serialNumber;'.format(game_id, game_id, game_id)
@@ -102,6 +110,18 @@ def load_customer_prosumption():
     print('Loading customer prosumption last: {} seconds.'.format(time.time() - start_time))
     return df_customer_prosumption, game_id
 
+
+def get_current_game_id_and_timeslot():
+    game_id = None
+    latest_timeslot = None
+    try:
+        sql_statement='SELECT * FROM ewiis3.timeslot ORDER BY timeslotId DESC LIMIT 1;'
+        df_latest = execute_sql_query(sql_statement)
+        latest_timeslot = df_latest['serialNumber'].values[0]
+        game_id = df_latest['gameId'].values[0]
+    except Exception as e:
+        print('Error occured while requesting current game_id and latest timeslot from db.')
+    return game_id, latest_timeslot
 
 
 def store_price_intervals(df_intervals):

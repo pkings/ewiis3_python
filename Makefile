@@ -79,6 +79,10 @@ start_customer_prosumption_predictor:
 start_wholesale_prices_predictor:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/wholesale_price.py
 
+## tariff design learner
+start_tariff_design_learner:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/tariff_design_learner.py
+
 ## create data directories
 data_dir:
 	mkdir logs

@@ -45,7 +45,8 @@ if __name__ == '__main__':
     while True:
         try:
             start_time = time.time()
-            df_cleared_trades, game_id = data.load_cleared_trades()
+            current_game_id, latest_timeslot = data.get_current_game_id_and_timeslot()
+            df_cleared_trades, game_id = data.load_cleared_trades(current_game_id)
 
             if df_cleared_trades.empty:
                 print('No data available yet.')

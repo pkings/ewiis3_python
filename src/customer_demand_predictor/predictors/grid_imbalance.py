@@ -33,7 +33,8 @@ if __name__ == '__main__':
         retrain_models = 20
         try:
             start_time = time.time()
-            df_grid_imbalance, game_id = data.load_grid_imbalance()
+            current_game_id, latest_timeslot = data.get_current_game_id_and_timeslot()
+            df_grid_imbalance, game_id = data.load_grid_imbalance(current_game_id)
             df_grid_imbalance.rename(columns={'timeslotIndex': 'timeslot'}, inplace=True)
             if df_grid_imbalance.empty:
                 print('No data available yet.')

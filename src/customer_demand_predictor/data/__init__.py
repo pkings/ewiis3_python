@@ -7,3 +7,4 @@ from .database_connection import load_predictions  # noqa
 from .database_connection import load_cleared_trades  # noqa
 from .database_connection import load_grid_imbalance  # noqa
 from .database_connection import load_customer_prosumption  # noqa
+from .database_connection import get_current_game_id_and_timeslot  # noqa

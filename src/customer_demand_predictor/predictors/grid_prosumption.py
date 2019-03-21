@@ -58,7 +58,8 @@ if __name__ == '__main__':
         retrain_models = 20
         try:
             start_time = time.time()
-            df_total_grid_consumption_and_production, game_id = data.load_total_grid_consumption_and_production()
+            current_game_id, latest_timeslot = data.get_current_game_id_and_timeslot()
+            df_total_grid_consumption_and_production, game_id = data.load_total_grid_consumption_and_production(current_game_id)
 
             if df_total_grid_consumption_and_production.empty:
                 print('No data available yet.')
