@@ -52,7 +52,7 @@ venv:
 ifeq ($(wildcard $(VENV_DIR)/*),)
 	@echo "Did not find $(VENV_DIR), creating..."
 	mkdir -p $(VENV_DIR)
-	python3 -m venv $(VENV_DIR)
+	python3.6 -m venv $(VENV_DIR)
 endif
 
 #################################################################################
