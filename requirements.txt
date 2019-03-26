@@ -3,10 +3,10 @@
 
 # external dependencies
 bottle==0.12.13
-pandas==0.22
+pandas==0.23.4
 statsmodels==0.9.0
 matplotlib
-numpy
+numpy==1.16.2
 seaborn==0.9.0
 sklearn
 pytest
@@ -15,3 +15,4 @@ scipy
 pymysql
 sqlalchemy
 gym
+-e git://github.com/pkings/ewiis3DatabaseConnector.git#egg=ewiis3DatabaseConnector
