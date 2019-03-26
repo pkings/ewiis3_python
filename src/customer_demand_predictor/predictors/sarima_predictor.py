@@ -1,6 +1,6 @@
 import pandas as pd
 
-from customer_demand_predictor import data, util
+from customer_demand_predictor import util
 from statsmodels.tsa.statespace.sarimax import SARIMAXResults, SARIMAX
 
 
