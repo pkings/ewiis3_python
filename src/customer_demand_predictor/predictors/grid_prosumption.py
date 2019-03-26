@@ -1,7 +1,8 @@
 import time
 
-from customer_demand_predictor import data, util
+from customer_demand_predictor import util
 from customer_demand_predictor.predictors import Sarima
+import ewiis3DatabaseConnector as data
 
 def train_production_model(df_total_grid_consumption_and_production, game_id):
     sarima_predictor = Sarima()
@@ -42,9 +43,9 @@ def train_and_predict_all(df_total_grid_consumption_and_production, game_id):
     predict_prosumption(df_total_grid_consumption_and_production, game_id)
 
 
-def check_for_existing_prediction(df_total_grid_consumption_and_production):
+def check_for_existing_prediction(df_total_grid_consumption_and_production, game_id):
     latest_timeslot = max(df_total_grid_consumption_and_production['timeslot'])
-    df_prosumption_prediction = data.load_predictions('prosumption_prediction')
+    df_prosumption_prediction = data.load_predictions('prosumption_prediction', game_id)
 
     if df_prosumption_prediction.empty:
         return False
@@ -65,7 +66,7 @@ if __name__ == '__main__':
                 print('No data available yet.')
             elif len(df_total_grid_consumption_and_production['timeslot'].unique()) <= 24:
                 print('Not enough data to build models and predict')
-            elif check_for_existing_prediction(df_total_grid_consumption_and_production):
+            elif check_for_existing_prediction(df_total_grid_consumption_and_production, game_id):
                 print('Predictions have already be stores for the current available data.')
             elif util.check_for_model_existence(util.build_model_save_path('grid', 'consumption', 'SARIMAX')) and not len(df_total_grid_consumption_and_production['timeslot'].unique()) % retrain_models == 0:  # TODO: must check for all models, not only one
                 predict_prosumption(df_total_grid_consumption_and_production, game_id)

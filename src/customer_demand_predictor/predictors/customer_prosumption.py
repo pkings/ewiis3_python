@@ -1,7 +1,8 @@
 import time
 
-from customer_demand_predictor import data, util
+from customer_demand_predictor import util
 from customer_demand_predictor.predictors import Sarima
+import ewiis3DatabaseConnector as data
 
 
 def train_customer_prosumption_model(df_grid_imbalance, game_id):
@@ -17,9 +18,9 @@ def predict_customer_prosumption_model(df_grid_imbalance, game_id):
     data.store_predictions(df_prediction, 'customer_prosumption_prediction')
 
 
-def check_for_existing_prediction(df_grid_imbalance):
+def check_for_existing_prediction(df_grid_imbalance, game_id):
     latest_timeslot = max(df_grid_imbalance['timeslot'])
-    df_imbalance_prediction = data.load_predictions('customer_prosumption_prediction')
+    df_imbalance_prediction = data.load_predictions('customer_prosumption_prediction', game_id)
 
     if df_imbalance_prediction.empty:
         return False
@@ -40,7 +41,7 @@ if __name__ == '__main__':
                 print('No data available yet.')
             elif len(df_customer_prosumption['timeslot'].unique()) <= 5:
                 print('Not enough data to build models and predict')
-            elif check_for_existing_prediction(df_customer_prosumption):
+            elif check_for_existing_prediction(df_customer_prosumption, game_id):
                 print('Predictions have already be stored for the current available data.')
             elif util.check_for_model_existence(util.build_model_save_path('customer', 'prosumption', 'SARIMAX')) and not len(df_customer_prosumption['timeslot'].unique()) % retrain_models == 0:  # TODO: must check for all models, not only one
                 predict_customer_prosumption_model(df_customer_prosumption, game_id)
