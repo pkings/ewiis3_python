@@ -4,7 +4,7 @@ import pandas as pd
 import scipy.stats
 
 from datetime import datetime
-from customer_demand_predictor import data
+import ewiis3DatabaseConnector as db
 
 
 def mean_confidence_interval(data_points, confidence=0.99):
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     while True:
         try:
             start_time = time.time()
-            current_game_id, latest_timeslot = data.get_current_game_id_and_timeslot()
-            df_cleared_trades, game_id = data.load_cleared_trades(current_game_id)
+            current_game_id, latest_timeslot = db.get_current_game_id_and_timeslot()
+            df_cleared_trades, game_id = db.load_cleared_trades(current_game_id)
 
             if df_cleared_trades.empty:
                 print('No data available yet.')
@@ -54,7 +54,9 @@ if __name__ == '__main__':
                 df_cleared_trades['time_delta'] = df_cleared_trades.apply(lambda row: calculate_time_delta(row), axis=1)
                 df_time_delta_intervals = calculate_intervals_based_on_segments('time_delta')
                 df_slotInDay_intervals = calculate_intervals_based_on_segments('slotInDay')
-                data.store_price_intervals(pd.concat([df_time_delta_intervals, df_slotInDay_intervals]))
+                confidence_intervals = pd.concat([df_time_delta_intervals, df_slotInDay_intervals])
+                confidence_intervals['game_id'] = current_game_id
+                db.store_price_intervals(confidence_intervals, game_id)
 
             print('Wholesale prices prediction (and training) lasted {} seconds'.format(time.time() - start_time))
         except Exception as e:
