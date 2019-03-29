@@ -85,20 +85,12 @@ start_tariff_design_learner:
 
 ## create data directories
 data_dir:
-	mkdir logs
 	mkdir models
-	mkdir output
 
 ## cleaning data directory
 clean_dirs:
 	rm -r models
-	rm -r logs
-	rm -r output
 	make data_dir
 
-## create output directories
-output_dir:
-	mkdir outputs
-
 ## initial project setupt
-initialize: requirements data_dir output_dir
+initialize: requirements data_dir

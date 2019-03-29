@@ -22,11 +22,11 @@ class Sarima:
         Y = df[dep_var]
         X = df[indep_var]
 
-        if len(Y) <= 24:
+        if len(Y) <= 24 and not self.seasonal_order is None:
             print("Length of dependent variable is to short: {}".format(len(Y)))
             return
 
-        if len(X) <= 24:
+        if len(X) <= 24 and not self.seasonal_order is None:
             print("Length of dependent variables is to short: {}".format(len(X)))
             return
 

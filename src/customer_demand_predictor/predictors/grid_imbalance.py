@@ -39,7 +39,7 @@ if __name__ == '__main__':
             df_grid_imbalance.rename(columns={'timeslotIndex': 'timeslot'}, inplace=True)
             if df_grid_imbalance.empty:
                 print('No data available yet.')
-            elif len(df_grid_imbalance['timeslot'].unique()) <= 24:
+            elif len(df_grid_imbalance['timeslot'].unique()) <= 2:
                 print('Not enough data to build models and predict')
             elif check_for_existing_prediction(df_grid_imbalance, game_id):
                 print('Predictions have already be stored for the current available data.')

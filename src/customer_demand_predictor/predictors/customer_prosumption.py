@@ -35,7 +35,7 @@ if __name__ == '__main__':
         try:
             start_time = time.time()
             current_game_id, latest_timeslot = data.get_current_game_id_and_timeslot()
-            df_customer_prosumption, game_id = data.load_customer_prosumption(current_game_id)
+            df_customer_prosumption, game_id = data.load_customer_prosumption_with_weather_and_time(current_game_id)
             df_customer_prosumption.rename(columns={'timeslotIndex': 'timeslot'}, inplace=True)
             if df_customer_prosumption.empty:
                 print('No data available yet.')
