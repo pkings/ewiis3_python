@@ -15,12 +15,12 @@ def predict_customer_prosumption_model(df_grid_imbalance, game_id):
     sarima_predictor = Sarima()
     sarima_predictor.set_SARIMA_Parameter(order=(1, 0, 0), seasonal_order=None, forecast_length=24)
     df_prediction = sarima_predictor.predict_with_trained_SARIMA_model(df_grid_imbalance, game_id, 'SUM(kWH)', ['cloudCover', 'temperature', 'windSpeed'], 'customer', 'prosumption', 'SARIMAX')
-    data.store_predictions(df_prediction, 'customer_prosumption_prediction')
+    data.store_predictions(df_prediction, 'prediction')
 
 
 def check_for_existing_prediction(df_grid_imbalance, game_id):
     latest_timeslot = max(df_grid_imbalance['timeslot'])
-    df_imbalance_prediction = data.load_predictions('customer_prosumption_prediction', game_id)
+    df_imbalance_prediction = data.load_predictions('prediction', game_id, 'customer', 'prosumption')
 
     if df_imbalance_prediction.empty:
         return False

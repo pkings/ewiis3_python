@@ -12,7 +12,7 @@ def train_production_model(df_total_grid_consumption_and_production, game_id):
 def predict_production(df_total_grid_consumption_and_production, game_id):
     sarima_predictor = Sarima()
     df_prediction = sarima_predictor.predict_with_trained_SARIMA_model(df_total_grid_consumption_and_production, game_id, 'totalProduction', ['cloudCover', 'temperature'], 'grid', 'production', 'SARIMAX')
-    data.store_predictions(df_prediction, 'prosumption_prediction')
+    data.store_predictions(df_prediction, 'prediction')
 
 
 def train_consumption_model(df_total_grid_consumption_and_production, game_id):
@@ -23,7 +23,7 @@ def train_consumption_model(df_total_grid_consumption_and_production, game_id):
 def predict_consumption(df_total_grid_consumption_and_production, game_id):
     sarima_predictor = Sarima()
     df_prediction = sarima_predictor.predict_with_trained_SARIMA_model(df_total_grid_consumption_and_production, game_id, 'totalConsumption', ['temperature'], 'grid', 'consumption', 'SARIMAX')
-    data.store_predictions(df_prediction, 'prosumption_prediction')
+    data.store_predictions(df_prediction, 'prediction')
 
 
 def train_all_predictors(df_total_grid_consumption_and_production, game_id):
@@ -45,7 +45,7 @@ def train_and_predict_all(df_total_grid_consumption_and_production, game_id):
 
 def check_for_existing_prediction(df_total_grid_consumption_and_production, game_id):
     latest_timeslot = max(df_total_grid_consumption_and_production['timeslot'])
-    df_prosumption_prediction = data.load_predictions('prosumption_prediction', game_id)
+    df_prosumption_prediction = data.load_predictions('prediction', game_id, 'grid', 'consumption')  # TODO: not checking for production data here
 
     if df_prosumption_prediction.empty:
         return False
