@@ -81,7 +81,7 @@ start_wholesale_prices_predictor:
 
 ## tariff design learner
 start_tariff_design_learner:
-	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/tariff_design_learner.py
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/rl_learner/tariff_design_learner.py
 
 ## create data directories
 data_dir:
