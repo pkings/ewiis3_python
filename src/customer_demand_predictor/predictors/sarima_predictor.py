@@ -40,8 +40,7 @@ class Sarima:
         save_path = util.build_model_save_path(target, type, model_type)
         fitted_model.save(save_path, remove_data=True)
 
-    def predict_with_trained_SARIMA_model(self, df, game_id, dep_var, indep_var, target,
-                                          type, model_type):
+    def predict_with_trained_SARIMA_model(self, df, game_id, dep_var, indep_var, X_out_of_sample, target, type, model_type):
         # might be mistakes here!
         save_path = util.build_model_save_path(target, type, model_type)
 
@@ -53,7 +52,9 @@ class Sarima:
 
         Y = df[dep_var]
         X = df[indep_var]
+        X_out_of_sample.index = range(max(Y.index) + 1, max(Y.index) + 24 + 1)
         latest_index = max(Y.index)
+
         latest_timeslot = df.iloc[latest_index]['timeslot']
 
         if self.seasonal_order is None:
@@ -62,7 +63,7 @@ class Sarima:
             model = SARIMAX(endog=Y, exog=X, order=self.order, seasonal_order=self.seasonal_order)
 
         fitted_model = model.filter(params=saved_model.params)
-        prediction = fitted_model.predict(exog=X[-24:], start=latest_index + 1,
+        prediction = fitted_model.predict(exog=X_out_of_sample, start=latest_index + 1,
                                           end=latest_index + 1 + self.forecast_length - 1)
         df_prediction = pd.DataFrame(
             {'target_timeslot': range(latest_timeslot + 1, latest_timeslot + 1 + self.forecast_length),
