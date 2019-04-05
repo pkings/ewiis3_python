@@ -89,6 +89,12 @@ if __name__ == '__main__':
                 print('Not enough data to build models and predict')
             else:
                 # training model
+
+                # switch to saisonal model
+                if customerProsumptionPredictor.get_size_of_training_data() > 40 and customerProsumptionPredictor.seasonal_order is None:
+                    customerProsumptionPredictor.seasonal_order=(1, 0, 0, 24)
+                    customerProsumptionPredictor.train()
+
                 if not customerProsumptionPredictor.check_for_model_existence() or (customerProsumptionPredictor.get_size_of_training_data() % retrain_models == 0 and customerProsumptionPredictor.get_size_of_training_data() > 30):
                     customerProsumptionPredictor.train()
                 # predict
