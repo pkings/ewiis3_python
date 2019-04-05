@@ -70,8 +70,11 @@ class Sarima:
              'prediction': prediction})
 
         # set lower and upper bound for prediction
-        prediction_upper_bound = max(Y) * 1.2
-        prediction_lower_bound = min(Y) * 0.8
+
+        tolerance = 0.2
+
+        prediction_upper_bound = max(Y) * (1 + tolerance) if max(Y) > 0 else max(Y) * (1 - tolerance)
+        prediction_lower_bound = min(Y) * (1 - tolerance) if min(Y) > 0 else min(Y) * (1 + tolerance)
         # restrict prediction in lower and upper bound
         df_prediction['prediction'] = df_prediction['prediction'].apply(
             lambda x: max([min([x, prediction_upper_bound]), prediction_lower_bound]))
