@@ -4,7 +4,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-from customer_demand_predictor.sarima import mean_percentage_error, total_deviation_error, calcuate_R_2
+from ewiis3_python_scripts.sarima import mean_percentage_error, total_deviation_error, calcuate_R_2
 
 
 def predict_with_sarimax(timeSeries, order=(1, 0, 0), seasonal_order=(1, 0, 0, 24), forecast_length=24):

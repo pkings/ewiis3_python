@@ -3,7 +3,7 @@
 #################################################################################
 # GLOBALS                                                                       #
 #################################################################################
-PROJECT_NAME = customer_demand_predictor
+PROJECT_NAME = ewiis3_python_scripts
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 VENV_DIR =  $(PROJECT_DIR)/env
 JUPYTER_DIR =  $(VENV_DIR)/share/jupyter

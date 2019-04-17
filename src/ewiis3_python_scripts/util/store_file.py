@@ -1,7 +1,7 @@
 import json
 import os
 
-from customer_demand_predictor import MODEL_EVALUATION_FILE_PATH, MODEL_DIR
+from ewiis3_python_scripts import MODEL_EVALUATION_FILE_PATH, MODEL_DIR
 
 
 def store_model_selection(best_models, customer):
@@ -22,5 +22,5 @@ def check_for_model_existence(model_path):
     return os.path.isfile(model_path)
 
 
-def build_model_save_path(target, type, model_name):
-    return '{}{}_{}_{}.pkl'.format(MODEL_DIR, target, type, model_name)
+def build_model_save_path(game_id, target, type, model_name):
+    return '{}{}_{}_{}_{}.pkl'.format(MODEL_DIR, game_id, target, type, model_name)

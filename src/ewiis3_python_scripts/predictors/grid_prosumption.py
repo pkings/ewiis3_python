@@ -1,8 +1,8 @@
 import time
 import pandas as pd
 
-from customer_demand_predictor import util
-from customer_demand_predictor.predictors import Sarima, PredictorAbstract
+from ewiis3_python_scripts import util
+from ewiis3_python_scripts.predictors import Sarima, PredictorAbstract
 import ewiis3DatabaseConnector as data
 
 

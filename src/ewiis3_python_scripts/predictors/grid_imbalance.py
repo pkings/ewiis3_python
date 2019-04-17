@@ -1,8 +1,8 @@
 import time
 import pandas as pd
 
-from customer_demand_predictor import util
-from customer_demand_predictor.predictors import Sarima, PredictorAbstract
+from ewiis3_python_scripts import util
+from ewiis3_python_scripts.predictors import Sarima, PredictorAbstract
 import ewiis3DatabaseConnector as data
 
 
@@ -21,12 +21,13 @@ class ImbalancePredictor(PredictorAbstract):
     type = 'imbalance'
 
 
-    def __init__(self):
+    def __init__(self, game_id):
+        self.current_game_id = game_id
         pass
 
 
     def load_data(self):
-        self.current_game_id, self.latest_timeslot = data.get_current_game_id_and_timeslot()
+        self.latest_timeslot = data.load_latest_timeslot_of_gameId(self.current_game_id)
         df_grid_imbalance, game_id = data.load_grid_imbalance(self.current_game_id)
         df_grid_imbalance.rename(columns={'timeslotIndex': 'timeslot'}, inplace=True)
         self.df_grid_imbalance = df_grid_imbalance
@@ -67,7 +68,7 @@ class ImbalancePredictor(PredictorAbstract):
 
 
     def check_for_model_existence(self):
-        return util.check_for_model_existence(util.build_model_save_path(self.target, self.type, 'SARIMAX'))
+        return util.check_for_model_existence(util.build_model_save_path(self.current_game_id, self.target, self.type, 'SARIMAX'))
 
 
     def get_size_of_training_data(self):
@@ -79,26 +80,36 @@ class ImbalancePredictor(PredictorAbstract):
 
 
 
+def process_run():
+    for game_id in data.get_running_gameIds():
+        process_gameId(game_id)
+
+
+def process_gameId(game_id):
+    try:
+        start_time = time.time()
+        retrain_models = 20
+
+        imbalancePredictor = ImbalancePredictor(game_id)
+        imbalancePredictor.load_data()
+
+        if not imbalancePredictor.has_enough_observations_for_training():
+            print('Not enough data to build models and predict')
+        else:
+            # training model
+            if not imbalancePredictor.check_for_model_existence() or (
+                        imbalancePredictor.get_size_of_training_data() % retrain_models == 0 and imbalancePredictor.get_size_of_training_data() > 30):
+                imbalancePredictor.train()
+            # predict
+            if not imbalancePredictor.check_for_existing_prediction():
+                imbalancePredictor.predict()
+        print('Grid imbalance prediction (and training) lasted {} seconds'.format(time.time() - start_time))
+    except Exception as e:
+        print("ERROR: some error has occurred during iteration.")
+        print(e)
+
+
 if __name__ == '__main__':
     while True:
-        retrain_models = 20
-        try:
-            start_time = time.time()
-
-            imbalancePredictor = ImbalancePredictor()
-            imbalancePredictor.load_data()
-
-            if not imbalancePredictor.has_enough_observations_for_training():
-                print('Not enough data to build models and predict')
-            else:
-                # training model
-                if not imbalancePredictor.check_for_model_existence() or (imbalancePredictor.get_size_of_training_data() % retrain_models == 0 and imbalancePredictor.get_size_of_training_data() > 30):
-                    imbalancePredictor.train()
-                # predict
-                if not imbalancePredictor.check_for_existing_prediction():
-                    imbalancePredictor.predict()
-            print('Grid imbalance prediction (and training) lasted {} seconds'.format(time.time() - start_time))
-        except Exception as e:
-            print("ERROR: some error has occurred during iteration.")
-            print(e)
+        process_run()
         time.sleep(1.5)

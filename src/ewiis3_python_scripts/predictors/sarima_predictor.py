@@ -1,6 +1,6 @@
 import pandas as pd
 
-from customer_demand_predictor import util
+from ewiis3_python_scripts import util
 from statsmodels.tsa.statespace.sarimax import SARIMAXResults, SARIMAX
 
 
@@ -37,12 +37,12 @@ class Sarima:
 
         fitted_model = model.fit()
         # print(fitted_model.summary())
-        save_path = util.build_model_save_path(target, type, model_type)
+        save_path = util.build_model_save_path(game_id, target, type, model_type)
         fitted_model.save(save_path, remove_data=True)
 
     def predict_with_trained_SARIMA_model(self, df, game_id, dep_var, indep_var, X_out_of_sample, target, type, model_type):
         # might be mistakes here!
-        save_path = util.build_model_save_path(target, type, model_type)
+        save_path = util.build_model_save_path(game_id, target, type, model_type)
 
         if not util.check_for_model_existence(save_path):
             print("Cannot predict for {}. No model has been trained yet.".format(dep_var))

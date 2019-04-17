@@ -1,8 +1,8 @@
 import time
 import pandas as pd
 
-from customer_demand_predictor import util
-from customer_demand_predictor.predictors import Sarima, PredictorAbstract
+from ewiis3_python_scripts import util
+from ewiis3_python_scripts.predictors import Sarima, PredictorAbstract
 import ewiis3DatabaseConnector as data
 
 class CustomerProsumptionPredictor(PredictorAbstract):
@@ -20,12 +20,13 @@ class CustomerProsumptionPredictor(PredictorAbstract):
     type = 'prosumption'
 
 
-    def __init__(self):
+    def __init__(self, game_id):
+        self.current_game_id = game_id
         pass
 
 
     def load_data(self):
-        self.current_game_id, self.latest_timeslot = data.get_current_game_id_and_timeslot()
+        self.latest_timeslot = data.load_latest_timeslot_of_gameId(self.current_game_id)
         df_customer_prosumption, game_id = data.load_customer_prosumption_with_weather_and_time(self.current_game_id)
         df_customer_prosumption.rename(columns={'timeslotIndex': 'timeslot'}, inplace=True)
         self.df_customer_prosumption = df_customer_prosumption
@@ -65,7 +66,7 @@ class CustomerProsumptionPredictor(PredictorAbstract):
 
 
     def check_for_model_existence(self):
-        return util.check_for_model_existence(util.build_model_save_path(self.target, self.type, 'SARIMAX'))
+        return util.check_for_model_existence(util.build_model_save_path(self.current_game_id, self.target, self.type, 'SARIMAX'))
 
 
     def get_size_of_training_data(self):
@@ -76,32 +77,42 @@ class CustomerProsumptionPredictor(PredictorAbstract):
         return self.get_size_of_training_data() > self.min_observations
 
 
+def process_gameId(game_id):
+    try:
+        start_time = time.time()
+        retrain_models = 20
+
+        customerProsumptionPredictor = CustomerProsumptionPredictor(game_id)
+        customerProsumptionPredictor.load_data()
+
+        if not customerProsumptionPredictor.has_enough_observations_for_training():
+            print('Not enough data to build models and predict')
+        else:
+
+            # switch to saisonal model
+            if customerProsumptionPredictor.get_size_of_training_data() > 40 and customerProsumptionPredictor.seasonal_order is None:
+                customerProsumptionPredictor.seasonal_order = (1, 0, 0, 24)
+                customerProsumptionPredictor.train()
+
+            # training model
+            if not customerProsumptionPredictor.check_for_model_existence() or (
+                                customerProsumptionPredictor.get_size_of_training_data() % retrain_models == 0 and customerProsumptionPredictor.get_size_of_training_data() > 30):
+                customerProsumptionPredictor.train()
+            # predict
+            if not customerProsumptionPredictor.check_for_existing_prediction():
+                customerProsumptionPredictor.predict()
+        print('Customer prosumption prediction (and training) lasted {} seconds'.format(time.time() - start_time))
+    except Exception as e:
+        print("ERROR: some error has occurred during iteration.")
+        print(e)
+
+
+def process_run():
+    for game_id in data.get_running_gameIds():
+        process_gameId(game_id)
+
+
 if __name__ == '__main__':
     while True:
-        retrain_models = 20
-        try:
-            start_time = time.time()
-
-            customerProsumptionPredictor = CustomerProsumptionPredictor()
-            customerProsumptionPredictor.load_data()
-
-            if not customerProsumptionPredictor.has_enough_observations_for_training():
-                print('Not enough data to build models and predict')
-            else:
-                # training model
-
-                # switch to saisonal model
-                if customerProsumptionPredictor.get_size_of_training_data() > 40 and customerProsumptionPredictor.seasonal_order is None:
-                    customerProsumptionPredictor.seasonal_order=(1, 0, 0, 24)
-                    customerProsumptionPredictor.train()
-
-                if not customerProsumptionPredictor.check_for_model_existence() or (customerProsumptionPredictor.get_size_of_training_data() % retrain_models == 0 and customerProsumptionPredictor.get_size_of_training_data() > 30):
-                    customerProsumptionPredictor.train()
-                # predict
-                if not customerProsumptionPredictor.check_for_existing_prediction():
-                    customerProsumptionPredictor.predict()
-            print('Customer prosumption prediction (and training) lasted {} seconds'.format(time.time() - start_time))
-        except Exception as e:
-            print("ERROR: some error has occurred during iteration.")
-            print(e)
+        process_run()
         time.sleep(1.5)
