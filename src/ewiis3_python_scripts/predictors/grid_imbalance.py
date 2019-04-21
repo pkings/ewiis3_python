@@ -26,9 +26,10 @@ class ImbalancePredictor(PredictorAbstract):
         pass
 
 
-    def load_data(self):
+    def load_data(self, for_training):
+        limit = 336*3 if for_training else 336
         self.latest_timeslot = data.load_latest_timeslot_of_gameId(self.current_game_id)
-        df_grid_imbalance, game_id = data.load_grid_imbalance(self.current_game_id)
+        df_grid_imbalance, game_id = data.load_grid_imbalance(self.current_game_id, limit=limit)
         df_grid_imbalance.rename(columns={'timeslotIndex': 'timeslot'}, inplace=True)
         self.df_grid_imbalance = df_grid_imbalance
         df_weather_forecast, game_id = data.load_weather_forecast(self.current_game_id)
@@ -76,13 +77,7 @@ class ImbalancePredictor(PredictorAbstract):
 
 
     def has_enough_observations_for_training(self):
-        return self.get_size_of_training_data() > self.min_observations
-
-
-
-def process_run():
-    for game_id in data.get_running_gameIds():
-        process_gameId(game_id)
+        return self.get_size_of_training_data() >= self.min_observations
 
 
 def process_gameId(game_id):
@@ -91,7 +86,7 @@ def process_gameId(game_id):
         retrain_models = 20
 
         imbalancePredictor = ImbalancePredictor(game_id)
-        imbalancePredictor.load_data()
+        imbalancePredictor.load_data(for_training=False)
 
         if not imbalancePredictor.has_enough_observations_for_training():
             print('Not enough data to build models and predict')
@@ -99,14 +94,20 @@ def process_gameId(game_id):
             # training model
             if not imbalancePredictor.check_for_model_existence() or (
                         imbalancePredictor.get_size_of_training_data() % retrain_models == 0 and imbalancePredictor.get_size_of_training_data() > 30):
+                imbalancePredictor.load_data(for_training=True)
                 imbalancePredictor.train()
             # predict
             if not imbalancePredictor.check_for_existing_prediction():
                 imbalancePredictor.predict()
-        print('Grid imbalance prediction (and training) lasted {} seconds'.format(time.time() - start_time))
+        print('gameId: {}: grid imbalance prediction (and training) lasted {} seconds'.format(game_id, time.time() - start_time))
     except Exception as e:
         print("ERROR: some error has occurred during iteration.")
         print(e)
+
+
+def process_run():
+    for game_id in data.get_running_gameIds():
+        process_gameId(game_id)
 
 
 if __name__ == '__main__':

@@ -79,6 +79,14 @@ start_customer_prosumption_predictor:
 start_wholesale_prices_predictor:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/wholesale_price.py
 
+## start model trainer
+start_training_models:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/train.py
+
+## start predicting with models
+start_predicting:
+	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/predictors/predict.py
+
 ## tariff design learner
 start_tariff_design_learner:
 	@$(PYTHON_INTERPRETER) src/$(PROJECT_NAME)/rl_learner/tariff_design_learner.py
