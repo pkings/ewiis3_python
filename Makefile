@@ -94,10 +94,12 @@ start_tariff_design_learner:
 ## create data directories
 data_dir:
 	mkdir models
+	mkdir logs
 
 ## cleaning data directory
 clean_dirs:
 	rm -r models
+	rm -r logs
 	make data_dir
 
 ## initial project setupt
