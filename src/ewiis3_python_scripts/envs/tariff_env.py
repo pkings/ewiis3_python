@@ -1,8 +1,17 @@
 import gym
-
+from gym import spaces
+import numpy as np
+import ewiis3DatabaseConnector as db
+import numpy
 
 class TariffEnv(gym.Env):
     def __init__(self):
+        # define actions
+        # define states
+        print('TariffEnv init called')
+        self.action_space = spaces.Discrete(5)
+        # self.observation_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3)))
+        self.observation_space = spaces.Discrete(9)
         pass
 
     def step(self, action):
@@ -35,9 +44,8 @@ class TariffEnv(gym.Env):
                  use this for learning.
         """
         self._take_action(action)
-        self.status = self.env.step()
         reward = self._get_reward()
-        ob = self.env.getState()
+        ob = self._observe_state()
         # episode_over = self.status != hfo_py.IN_GAME
         episode_over = False
         return ob, reward, episode_over, {}
@@ -49,8 +57,24 @@ class TariffEnv(gym.Env):
         pass
 
     def _take_action(self, action):
+        # Todo: wait here
+        # take action with broker
+        # check database for new state
+        # continue
         pass
+
+    def _observe_state(self):
+        return np.random.randint(0, self.observation_space.n)
 
     def _get_reward(self):
         """ Reward is given for XY. """
-        return 1
+        all_gameIds = db.get_running_gameIds()
+        game_id = all_gameIds[0]
+        df_prosumption = db.load_consumption_tariff_prosumption(game_id, 24)
+        df_prosumption["grid_prosumption"] = df_prosumption["totalProduction"] - df_prosumption["totalConsumption"]
+        df_earnings = db.load_consumption_tariff_earnings(game_id, 24)
+
+        #print(df_prosumption.columns)
+        print(numpy.corrcoef(df_prosumption["grid_prosumption"], df_prosumption["SUM(t.kWh)"]))
+        #print(df_earnings.head())
+        return np.random.randint(0, 5)
