@@ -1,8 +1,14 @@
-# Welcome to our Data Science Server
+# Installation
+1. run `make initialize`
 
-## Installation
-1. make venv
-2. make requirements
+# database setup
+configure the values in the .env file in the main directory
+DB_USER=<user>
+DB_HOST=127.0.0.1
+DB_PW=<password>
+DB_PORT=3306
+DB_SCHEMA=ewiis3
 
-## execute tests
-* execute ptw
+# start training and predicting
+1. run `make start_training_models`
+2. run `make start_predicting`
